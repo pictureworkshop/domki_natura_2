@@ -179,19 +179,67 @@
   /* ---------- realizacje ---------- */
   .gallery{ background:var(--bg); }
   .gal-grid{ display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:220px; gap:14px; }
-  .gal-grid a{ position:relative; overflow:hidden; border-radius:2px; }
+  .gal-item{
+    position:relative; overflow:hidden; border-radius:2px; display:block; width:100%; height:100%;
+    background:none; border:none; padding:0; margin:0; text-align:left; cursor:zoom-in;
+    font-family:inherit; -webkit-tap-highlight-color:transparent;
+  }
+  .gal-item:focus-visible{ outline:2px solid var(--wood); outline-offset:3px; }
   .gal-grid img{ width:100%; height:100%; object-fit:cover; filter:saturate(0.75) brightness(0.8); transition:transform .6s ease, filter .4s ease; }
-  .gal-grid a:hover img{ transform:scale(1.07); filter:saturate(0.95) brightness(0.95); }
-  .gal-grid a::after{ content:''; position:absolute; inset:0; box-shadow:inset 0 0 0 1px var(--line); }
+  .gal-item:hover img, .gal-item:focus-visible img{ transform:scale(1.07); filter:saturate(0.95) brightness(0.95); }
+  .gal-item::after{ content:''; position:absolute; inset:0; box-shadow:inset 0 0 0 1px var(--line); }
   .gal-grid .g1{ grid-column:span 2; grid-row:span 2; }
   .gal-cap{
     position:absolute; left:16px; bottom:14px; z-index:2; font-size:13px; letter-spacing:0.03em;
     color:var(--cream); opacity:0; transform:translateY(8px); transition:all .3s;
   }
-  .gal-grid a:hover .gal-cap{ opacity:1; transform:translateY(0); }
-  .gal-grid a::before{
+  .gal-item:hover .gal-cap, .gal-item:focus-visible .gal-cap{ opacity:1; transform:translateY(0); }
+  .gal-item::before{
     content:''; position:absolute; inset:0; z-index:1;
     background:linear-gradient(to top, rgba(0,0,0,0.75), transparent 50%);
+  }
+  .gal-zoom{
+    position:absolute; top:14px; right:14px; z-index:2; width:36px; height:36px; border-radius:50%;
+    background:rgba(18,16,13,0.55); backdrop-filter:blur(4px); border:1px solid rgba(239,232,220,0.25);
+    display:flex; align-items:center; justify-content:center; color:var(--cream); font-size:15px;
+    opacity:0; transform:scale(0.8); transition:opacity .3s, transform .3s;
+  }
+  .gal-item:hover .gal-zoom, .gal-item:focus-visible .gal-zoom{ opacity:1; transform:scale(1); }
+
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed; inset:0; z-index:300; background:rgba(12,10,8,0.95);
+    display:flex; align-items:center; justify-content:center; padding:60px 24px;
+    opacity:0; visibility:hidden; transition:opacity .3s ease;
+  }
+  .lightbox.active{ opacity:1; visibility:visible; }
+  .lightbox-figure{ max-width:min(1100px, 92vw); max-height:86vh; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .lightbox-img{
+    max-width:100%; max-height:78vh; object-fit:contain; border-radius:2px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.55); opacity:0; transform:scale(0.96);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .lightbox.active .lightbox-img{ opacity:1; transform:scale(1); }
+  .lightbox-cap{ font-family:'Fraunces',serif; font-size:15px; color:var(--muted); text-align:center; }
+  .lightbox-close, .lightbox-prev, .lightbox-next{
+    position:fixed; width:48px; height:48px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(27,23,18,0.65); backdrop-filter:blur(6px); color:var(--cream); font-size:20px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:310;
+    transition:border-color .25s, background .25s;
+  }
+  .lightbox-close:hover, .lightbox-prev:hover, .lightbox-next:hover{ border-color:var(--wood); background:rgba(192,136,71,0.18); }
+  .lightbox-close{ top:28px; right:28px; }
+  .lightbox-prev{ top:50%; left:24px; transform:translateY(-50%); }
+  .lightbox-next{ top:50%; right:24px; transform:translateY(-50%); }
+  .lightbox-counter{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    font-size:12px; letter-spacing:0.1em; color:var(--muted); z-index:310;
+  }
+  @media (max-width:600px){
+    .lightbox{ padding:80px 16px 100px; }
+    .lightbox-close{ top:16px; right:16px; width:40px; height:40px; }
+    .lightbox-prev{ left:10px; width:40px; height:40px; }
+    .lightbox-next{ right:10px; width:40px; height:40px; }
   }
 
   /* ---------- proces ---------- */
@@ -221,6 +269,17 @@
   }
   .form input:focus, .form textarea:focus{ border-color:var(--wood); }
   .form textarea{ resize:none; height:70px; }
+  .form select{
+    width:100%; background:transparent; border:none; border-bottom:1px solid var(--line);
+    color:var(--cream); font-family:'Manrope',sans-serif; font-size:16px; padding:10px 28px 10px 0; outline:none;
+    transition:border-color .25s; appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    cursor:pointer; border-radius:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C08847' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right center;
+  }
+  .form select:focus{ border-color:var(--wood); }
+  .form select:invalid{ color:var(--muted); }
+  .form select option{ background:#1B1712; color:var(--cream); }
   .form button{
     margin-top:12px; align-self:flex-start; background:var(--wood); color:#14110D; border:none;
     padding:16px 34px; font-size:14px; letter-spacing:0.03em; font-weight:600; border-radius:2px; cursor:pointer;
@@ -263,7 +322,7 @@
 
 <section class="hero">
   <div class="hero-media">
-    <img src="https://www.domkinatura.pl/images/design/slide-1.jpg" alt="Dom drewniany w lesie">
+    <img src="images/hero/domek-w-lesie.jpg" alt="Dom drewniany w lesie">
   </div>
   <div class="rings">
     <svg viewBox="0 0 400 400" fill="none">
@@ -294,7 +353,7 @@
 <section id="o-firmie" class="about">
   <div class="wrap about-grid">
     <div class="about-media">
-      <img src="https://www.domkinatura.pl/images/design/podstrona-img-1.jpg" alt="Dom letniskowy Domki Natura">
+      <img src="images/about/domek-letniskowy-podstrona.jpg" alt="Dom letniskowy Domki Natura">
       <div class="ring-badge"><b>15</b><span>lat na rynku</span></div>
     </div>
     <div class="about-text">
@@ -358,24 +417,7 @@
       </div>
       <p>Wybrane realizacje dla klientów z Polski i innych państw Unii Europejskiej.</p>
     </div>
-    <div class="gal-grid">
-      <a href="#kontakt" class="g1">
-        <img src="https://www.domkinatura.pl/images/design/slide-3.jpg" alt="Domek letniskowy w górach">
-        <span class="gal-cap">Domek w górach — realizacja klienta</span>
-      </a>
-      <a href="#domki-letniskowe">
-        <img src="https://www.domkinatura.pl/media/djcatalog2/images/category/0/parterowe_m.jpg" alt="Domek parterowy">
-        <span class="gal-cap">Model parterowy</span>
-      </a>
-      <a href="#domki-letniskowe">
-        <img src="https://www.domkinatura.pl/media/djcatalog2/images/category/0/z-uzytkowym-poddaszem_m.jpg" alt="Domek z poddaszem użytkowym">
-        <span class="gal-cap">Z użytkowym poddaszem</span>
-      </a>
-      <a href="#kontakt">
-        <img src="https://www.domkinatura.pl/images/design/slide-2.jpg" alt="Domek letniskowy">
-        <span class="gal-cap">Domek letniskowy</span>
-      </a>
-    </div>
+    <div class="gal-grid" id="galGrid"></div>
   </div>
 </section>
 
@@ -417,6 +459,16 @@
         <input type="email" placeholder="twoj@email.pl">
       </div>
       <div>
+        <label>Temat zapytania</label>
+        <select required>
+          <option value="" disabled selected>Wybierz temat…</option>
+          <option value="budowa-od-zera">Budowa domu od zera (od projektu pod klucz)</option>
+          <option value="stan-surowy">Budowa do stanu surowego / deweloperskiego</option>
+          <option value="wycena-projektu">Wycena gotowego projektu (mam już projekt i szukam wykonawcy)</option>
+          <option value="adaptacja-formalnosci">Adaptacja projektu i formalności (pozwolenia, geodeta)</option>
+        </select>
+      </div>
+      <div>
         <label>Wiadomość</label>
         <textarea placeholder="Opowiedz nam o swoim wymarzonym domku…"></textarea>
       </div>
@@ -437,11 +489,92 @@
   </div>
 </footer>
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia realizacji">
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Zamknij podgląd">✕</button>
+  <button type="button" class="lightbox-prev" id="lightboxPrev" aria-label="Poprzednie zdjęcie">←</button>
+  <button type="button" class="lightbox-next" id="lightboxNext" aria-label="Następne zdjęcie">→</button>
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <figcaption class="lightbox-cap" id="lightboxCap"></figcaption>
+  </figure>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<script src="data/realizacje.js"></script>
 <script>
   const header = document.getElementById('siteHeader');
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 40);
   });
+
+  // ---------- galeria realizacji: renderowanie z data/realizacje.js ----------
+  const REALIZACJE_PATH = 'images/realizacje/';
+  const galGrid = document.getElementById('galGrid');
+  galGrid.innerHTML = REALIZACJE.map(item => `
+    <button type="button" class="gal-item${item.big ? ' g1' : ''}">
+      <img src="${REALIZACJE_PATH}${item.file}" alt="${item.alt}" loading="lazy">
+      <span class="gal-cap">${item.cap}</span>
+      <span class="gal-zoom" aria-hidden="true">⤢</span>
+    </button>
+  `).join('');
+
+  // ---------- galeria realizacji: lightbox ----------
+  const galItems = Array.from(galGrid.querySelectorAll('.gal-item'));
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCap = document.getElementById('lightboxCap');
+  const lightboxCounter = document.getElementById('lightboxCounter');
+  const lightboxClose = document.getElementById('lightboxClose');
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
+
+  const galData = REALIZACJE.map(item => ({ full: REALIZACJE_PATH + item.file, cap: item.cap }));
+  let currentIndex = 0;
+  let lastFocused = null;
+
+  function updateLightbox(){
+    const item = galData[currentIndex];
+    lightboxImg.src = item.full;
+    lightboxImg.alt = item.cap || '';
+    lightboxCap.textContent = item.cap || '';
+    lightboxCounter.textContent = (currentIndex + 1) + ' / ' + galData.length;
+  }
+  function openLightbox(index){
+    currentIndex = index;
+    lastFocused = document.activeElement;
+    updateLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    lightboxClose.focus();
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+    if (lastFocused) lastFocused.focus();
+  }
+  function showNext(){ currentIndex = (currentIndex + 1) % galData.length; updateLightbox(); }
+  function showPrev(){ currentIndex = (currentIndex - 1 + galData.length) % galData.length; updateLightbox(); }
+
+  galItems.forEach((item, index) => {
+    item.addEventListener('click', () => openLightbox(index));
+  });
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxNext.addEventListener('click', showNext);
+  lightboxPrev.addEventListener('click', showPrev);
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') showNext();
+    if (e.key === 'ArrowLeft') showPrev();
+  });
+
+  let touchStartX = 0;
+  lightbox.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  lightbox.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) { dx < 0 ? showNext() : showPrev(); }
+  }, { passive: true });
 </script>
 </body>
 </html>
