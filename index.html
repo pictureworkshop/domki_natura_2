@@ -286,6 +286,10 @@
     transition:background .25s, transform .25s;
   }
   .form button:hover{ background:#D69A56; transform:translateY(-2px); }
+  .form button:disabled{ opacity:0.6; cursor:default; transform:none; }
+  .form-status{ font-size:13.5px; margin-top:-4px; min-height:1px; }
+  .form-status.is-success{ color:var(--sage); }
+  .form-status.is-error{ color:#C0654A; }
 
   footer{ background:var(--surface); border-top:1px solid var(--line); padding:50px 0; }
   .foot-grid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
@@ -449,30 +453,33 @@
       <div class="cline"><b>E-mail</b><a href="mailto:biuro@domkinatura.pl">biuro@domkinatura.pl</a></div>
       <div class="cline"><b>Godziny</b><span>Pon–Pt, 8:00–17:00</span></div>
     </div>
-    <form class="form" onsubmit="return false;">
+    <form class="form" id="contactForm" action="https://formspree.io/f/TWOJ_FORMULARZ_ID" method="POST">
       <div>
-        <label>Imię i nazwisko</label>
-        <input type="text" placeholder="Jak się do Ciebie zwracać?">
+        <label for="cf-name">Imię i nazwisko</label>
+        <input id="cf-name" name="name" type="text" placeholder="Jak się do Ciebie zwracać?" required>
       </div>
       <div>
-        <label>Adres e-mail</label>
-        <input type="email" placeholder="twoj@email.pl">
+        <label for="cf-email">Adres e-mail</label>
+        <input id="cf-email" name="email" type="email" placeholder="twoj@email.pl" required>
       </div>
       <div>
-        <label>Temat zapytania</label>
-        <select required>
+        <label for="cf-temat">Temat zapytania</label>
+        <select id="cf-temat" name="temat" required>
           <option value="" disabled selected>Wybierz temat…</option>
-          <option value="budowa-od-zera">Budowa domu od zera (od projektu pod klucz)</option>
-          <option value="stan-surowy">Budowa do stanu surowego / deweloperskiego</option>
-          <option value="wycena-projektu">Wycena gotowego projektu (mam już projekt i szukam wykonawcy)</option>
-          <option value="adaptacja-formalnosci">Adaptacja projektu i formalności (pozwolenia, geodeta)</option>
+          <option value="Budowa domu od zera (od projektu pod klucz)">Budowa domu od zera (od projektu pod klucz)</option>
+          <option value="Budowa do stanu surowego / deweloperskiego">Budowa do stanu surowego / deweloperskiego</option>
+          <option value="Wycena gotowego projektu (mam już projekt i szukam wykonawcy)">Wycena gotowego projektu (mam już projekt i szukam wykonawcy)</option>
+          <option value="Adaptacja projektu i formalności (pozwolenia, geodeta)">Adaptacja projektu i formalności (pozwolenia, geodeta)</option>
         </select>
       </div>
       <div>
-        <label>Wiadomość</label>
-        <textarea placeholder="Opowiedz nam o swoim wymarzonym domku…"></textarea>
+        <label for="cf-message">Wiadomość</label>
+        <textarea id="cf-message" name="message" placeholder="Opowiedz nam o swoim wymarzonym domku…" required></textarea>
       </div>
-      <button type="submit">Wyślij zapytanie</button>
+      <input type="hidden" name="_subject" value="Nowe zapytanie ze strony Domki Natura">
+      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+      <button type="submit" id="cf-submit">Wyślij zapytanie</button>
+      <p class="form-status" id="cf-status" role="status" aria-live="polite"></p>
     </form>
   </div>
 </section>
@@ -575,6 +582,42 @@
     const dx = e.changedTouches[0].clientX - touchStartX;
     if (Math.abs(dx) > 40) { dx < 0 ? showNext() : showPrev(); }
   }, { passive: true });
+
+  // ---------- formularz kontaktowy: wysyłka przez Formspree ----------
+  const contactForm = document.getElementById('contactForm');
+  const cfSubmit = document.getElementById('cf-submit');
+  const cfStatus = document.getElementById('cf-status');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    cfStatus.textContent = '';
+    cfStatus.className = 'form-status';
+    cfSubmit.disabled = true;
+    cfSubmit.textContent = 'Wysyłanie…';
+
+    try {
+      const response = await fetch(contactForm.action, {
+        method: 'POST',
+        body: new FormData(contactForm),
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        contactForm.reset();
+        cfStatus.textContent = 'Dziękujemy! Zapytanie zostało wysłane — odezwiemy się najszybciej, jak to możliwe.';
+        cfStatus.classList.add('is-success');
+      } else {
+        cfStatus.textContent = 'Coś poszło nie tak. Spróbuj ponownie albo napisz na biuro@domkinatura.pl.';
+        cfStatus.classList.add('is-error');
+      }
+    } catch (err) {
+      cfStatus.textContent = 'Brak połączenia. Spróbuj ponownie albo napisz na biuro@domkinatura.pl.';
+      cfStatus.classList.add('is-error');
+    } finally {
+      cfSubmit.disabled = false;
+      cfSubmit.textContent = 'Wyślij zapytanie';
+    }
+  });
 </script>
 </body>
 </html>
